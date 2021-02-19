@@ -12,7 +12,7 @@ from tensorflow.keras.metrics import Mean
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.optimizers.schedules import PiecewiseConstantDecay
 
-
+# base class
 class Trainer:
     def __init__(self,
                  model,
@@ -93,7 +93,7 @@ class Trainer:
             self.checkpoint.restore(self.checkpoint_manager.latest_checkpoint)
             print(f'Model restored from checkpoint at step {self.checkpoint.step.numpy()}.')
 
-
+# derived class
 class EdsrTrainer(Trainer):
     def __init__(self,
                  model,
