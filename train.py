@@ -1,5 +1,6 @@
 import time
 import tensorflow as tf
+import time
 
 from model import evaluate
 from model import srgan
@@ -44,13 +45,16 @@ class Trainer:
 
         self.now = time.perf_counter()
 
-        for lr, hr in train_dataset.take(steps - ckpt.step.numpy()):
+        for lr, hr in train_dataset.take(steps - ckpt.step.numpy()): # for low_resolution+high_resolution image pair in dataset
+            t_start = time.time()
             ckpt.step.assign_add(1)
             step = ckpt.step.numpy()
-
             loss = self.train_step(lr, hr)
             loss_mean(loss)
+            t_end = time.time()
+            print("epoch:%3d step:%2d loss:%.5f time:%.3f" % (step/50,step%50,loss,t_end-t_start))
 
+            # evaluate
             if step % evaluate_every == 0:
                 loss_value = loss_mean.result()
                 loss_mean.reset_states()
@@ -61,13 +65,14 @@ class Trainer:
                 duration = time.perf_counter() - self.now
                 print(f'{step}/{steps}: loss = {loss_value.numpy():.3f}, PSNR = {psnr_value.numpy():3f} ({duration:.2f}s)')
 
-                if save_best_only and psnr_value <= ckpt.psnr:
+                if save_best_only and psnr_value <= ckpt.psnr: # if no PSNR improvement
                     self.now = time.perf_counter()
-                    # skip saving checkpoint, no PSNR improvement
+                    # skip saving checkpoint 
                     continue
 
                 ckpt.psnr = psnr_value
                 ckpt_mgr.save()
+                print("checkpoint saved!")
 
                 self.now = time.perf_counter()
 
